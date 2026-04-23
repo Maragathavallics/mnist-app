@@ -10,13 +10,13 @@ import gdown
 # 🔧 Page config
 st.set_page_config(page_title="Digit Recognizer", layout="centered")
 
-# 🚀 Load model (from Google Drive)
+# 🚀 Load model from Google Drive
 @st.cache_resource
 def load_my_model():
     model_path = "mnist.h5"
 
     if not os.path.exists(model_path):
-        file_id = "1xCQtE8pXEaCQ4lvvn-hpK03NYMU4umZP"  # ✅ YOUR DRIVE FILE ID
+        file_id = "1xCQtE8pXEaCQ4lvvn-hpK03NYMU4umZP"  # your drive file ID
         url = f"https://drive.google.com/uc?id={file_id}"
         gdown.download(url, model_path, quiet=False)
 
@@ -31,7 +31,7 @@ st.write("Draw a digit (0–9) and click Predict")
 # 🎨 Canvas
 canvas_result = st_canvas(
     fill_color="black",
-    stroke_width=8,
+    stroke_width=8,   # thinner strokes for better accuracy
     stroke_color="white",
     background_color="black",
     height=280,
@@ -49,18 +49,31 @@ if st.button("Predict"):
 
     if canvas_result.image_data is not None and np.sum(canvas_result.image_data) > 0:
 
-        # 🧠 Preprocess image
+        # 🧠 Preprocessing (IMPROVED)
         img = canvas_result.image_data[:, :, 0]
-        img = 255 - img  # invert
 
+        # invert colors
+        img = 255 - img
+
+        # remove noise
+        img[img < 100] = 0
+
+        # crop to digit (center it)
+        coords = np.column_stack(np.where(img > 0))
+        if coords.size > 0:
+            y_min, x_min = coords.min(axis=0)
+            y_max, x_max = coords.max(axis=0)
+            img = img[y_min:y_max, x_min:x_max]
+
+        # resize to 28x28
         img = Image.fromarray(img.astype("uint8"))
-        img = img.resize((28, 28)).convert("L")
+        img = img.resize((28, 28))
 
-        img = np.array(img)
+        # normalize
+        img = np.array(img) / 255.0
         img = img.reshape(1, 28, 28, 1)
-        img = img / 255.0
 
-        # 🤖 Predict
+        # 🤖 Prediction
         pred = model.predict(img)
         probs = pred[0]
         digit = np.argmax(probs)
