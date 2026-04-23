@@ -11,7 +11,7 @@ st.set_page_config(page_title="Digit Recognizer", layout="centered")
 # 🔧 Cache model (prevents reload issues)
 @st.cache_resource
 def load_my_model():
-    return load_model("mnist.keras")
+    return load_model("mnist.keras", compile=False)
 
 model = load_my_model()
 
