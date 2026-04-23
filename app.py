@@ -4,29 +4,27 @@ import numpy as np
 from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 import matplotlib.pyplot as plt
+import os
+import gdown
 
-# 🔧 Page config (UI improvement)
+# 🔧 Page config
 st.set_page_config(page_title="Digit Recognizer", layout="centered")
 
-# 🔧 Cache model (prevents reload issues)
-import requests
-import os
-
+# 🚀 Load model (from Google Drive)
 @st.cache_resource
 def load_my_model():
     model_path = "mnist.h5"
 
     if not os.path.exists(model_path):
-        url = "https://drive.google.com/uc?export=download&id=1eoIQ0JDCqw5VtnXzRauewv2aefFahACf"
-        r = requests.get(url)
-        with open(model_path, "wb") as f:
-            f.write(r.content)
+        file_id = "1xCQtE8pXEaCQ4lvvn-hpK03NYMU4umZP"  # ✅ YOUR DRIVE FILE ID
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, model_path, quiet=False)
 
     return load_model(model_path, compile=False)
 
 model = load_my_model()
 
-# 🧠 Title
+# 🎯 Title
 st.title("✍️ Handwritten Digit Recognition")
 st.write("Draw a digit (0–9) and click Predict")
 
@@ -42,18 +40,18 @@ canvas_result = st_canvas(
     key="canvas",
 )
 
-# 🔥 Clear button (for demo)
+# 🔄 Clear button
 if st.button("Clear"):
-    st.experimental_rerun()
+    st.rerun()
 
 # 🔍 Prediction
 if st.button("Predict"):
-    # 🔧 Handle empty canvas
+
     if canvas_result.image_data is not None and np.sum(canvas_result.image_data) > 0:
 
-        # 🖼️ Preprocess image
+        # 🧠 Preprocess image
         img = canvas_result.image_data[:, :, 0]
-        img = 255 - img  # 🔧 Invert image for MNIST
+        img = 255 - img  # invert
 
         img = Image.fromarray(img.astype("uint8"))
         img = img.resize((28, 28)).convert("L")
@@ -62,13 +60,13 @@ if st.button("Predict"):
         img = img.reshape(1, 28, 28, 1)
         img = img / 255.0
 
-        # 🤖 Prediction
+        # 🤖 Predict
         pred = model.predict(img)
         probs = pred[0]
         digit = np.argmax(probs)
         confidence = np.max(probs)
 
-        # 🎯 Output
+        # ✅ Output
         st.success(f"Prediction: {digit}")
         st.info(f"Confidence: {confidence*100:.2f}%")
 
