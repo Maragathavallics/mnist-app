@@ -31,7 +31,7 @@ st.write("Draw a digit (0–9) and click Predict")
 # 🎨 Canvas
 canvas_result = st_canvas(
     fill_color="black",
-    stroke_width=15,
+    stroke_width=8,
     stroke_color="white",
     background_color="black",
     height=280,
