@@ -9,9 +9,20 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="Digit Recognizer", layout="centered")
 
 # 🔧 Cache model (prevents reload issues)
+import requests
+import os
+
 @st.cache_resource
 def load_my_model():
-    return load_model("mnist.keras", compile=False)
+    model_path = "mnist.h5"
+
+    if not os.path.exists(model_path):
+        url = "https://drive.google.com/uc?export=download&id=1eoIQ0JDCqw5VtnXzRauewv2aefFahACf"
+        r = requests.get(url)
+        with open(model_path, "wb") as f:
+            f.write(r.content)
+
+    return load_model(model_path, compile=False)
 
 model = load_my_model()
 
